@@ -7,17 +7,17 @@ class ResizeWatch{
     this.aspect = this.width / this.height;
 
 
-    window.onresize = () => {
+    window.addEventListener('resize', () => {
       if(this.instances.length === 0) return;
 
       this.width = document.body.clientWidth;
       this.height = window.innerHeight;
       this.aspect = this.width / this.height;
 
-      for(var i = 0; i < this.instances.length; i++){
+      for(let i = 0; i < this.instances.length; i++){
         this.instances[i].resizeUpdate();
       }
-    }.bind(this)
+    });
   }
 
   register(instance){
@@ -26,4 +26,4 @@ class ResizeWatch{
 
 }
 
-window.ResizeWatch = new ResizeWatch();
+export const resizeWatch = new ResizeWatch();

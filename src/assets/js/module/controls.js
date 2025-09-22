@@ -1,4 +1,7 @@
-class Controls{
+import * as THREE from 'three';
+import { GUI } from 'dat.gui';
+
+export class Controls{
   constructor(webgl){
     this.webgl = webgl;
 
@@ -25,7 +28,7 @@ class Controls{
     this.props.objType = this.colorTex.objTypeName[0];
     this.uColorArray = this.colorTex.material.uniforms.uColorArray;
 
-    this.gui = new dat.GUI({width: 300});
+    this.gui = new GUI({width: 300});
 
     this.gui_objColor = this.gui.addFolder('obj color');
     this.gui_objColor.open();

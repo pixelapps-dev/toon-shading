@@ -1,6 +1,8 @@
-window.onload = () => {
-  var webgl = new Webgl();
-};
+import { Webgl } from './module/webgl.js';
+
+window.addEventListener('DOMContentLoaded', () => {
+  const webgl = new Webgl();
+});
 
 
 

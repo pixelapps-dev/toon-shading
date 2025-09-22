@@ -1,4 +1,7 @@
-class Simulation{
+import * as THREE from 'three';
+import { GPUComputationRenderer } from '../lib/GPUComputationRenderer.js';
+
+export class Simulation{
   constructor(basic, size){
     this.basic = basic;
     this.renderer = this.basic.renderer;

@@ -1,4 +1,8 @@
-class ColorTex{
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { Simulation } from './simulation.js';
+
+export class ColorTex{
   constructor(webgl){
     this.webgl = webgl;
     this.controls = this.webgl.controls;
@@ -14,10 +18,10 @@ class ColorTex{
     }
 
     this.objType = [
-      new THREE.TorusBufferGeometry(8, 4, 18, 32),
-      new THREE.TorusBufferGeometry(14, 3, 5, 3),
-      new THREE.BoxBufferGeometry(12, 12, 12),
-      new THREE.TorusBufferGeometry(16, 2, 5, 6),
+      new THREE.TorusGeometry(8, 4, 18, 32),
+      new THREE.TorusGeometry(14, 3, 5, 3),
+      new THREE.BoxGeometry(12, 12, 12),
+      new THREE.TorusGeometry(16, 2, 5, 6),
     ];
 
     this.objTypeName = [
@@ -50,7 +54,7 @@ class ColorTex{
     this.group = new THREE.Group();
     this.scene.add(this.group);
 
-    this.orbitControls = new THREE.OrbitControls( this.camera, this.webgl.renderer.domElement );
+    this.orbitControls = new OrbitControls( this.camera, this.webgl.renderer.domElement );
 
     this.sim = new Simulation(this.webgl, this.size);
 

@@ -1,4 +1,12 @@
-class Webgl{
+import * as THREE from 'three';
+import { resizeWatch } from './resize-watch.js';
+import { Controls } from './controls.js';
+import { ColorTex } from './color-texture.js';
+
+// Global for now - TODO: remove this and use proper user agent detection
+const Useragnt = { pc: true };
+
+export class Webgl{
   constructor(){
     this.size = 32;
 
@@ -90,7 +98,7 @@ class Webgl{
 
     this.renderer.autoClear = false;
     // renderer.setPixelRatio( window.devicePixelRatio );
-    this.renderer.setSize( ResizeWatch.width, ResizeWatch.height );
+    this.renderer.setSize( resizeWatch.width, resizeWatch.height );
     this.renderer.setClearColor( 0xffffff, 0.0 );
     this.container.appendChild( this.renderer.domElement );
 
@@ -120,13 +128,13 @@ class Webgl{
     this.time = new THREE.Clock();
     this.render();
 
-    ResizeWatch.register(this);
+    resizeWatch.register(this);
   };
 
 
   setProps(){
-    var width = ResizeWatch.width;
-    var height = ResizeWatch.height;
+    var width = resizeWatch.width;
+    var height = resizeWatch.height;
     var aspect = width / height;
 
     this.props = {
@@ -146,7 +154,7 @@ class Webgl{
 
 
   createPlane(){
-    var g = new THREE.PlaneBufferGeometry(this.width, this.height);
+    var g = new THREE.PlaneGeometry(this.width, this.height);
 
     
 
@@ -175,10 +183,10 @@ class Webgl{
 
     console.log(this.plane);
 
-    if(ResizeWatch.aspect > this.aspect){
-      var scale = ResizeWatch.width / this.width;
+    if(resizeWatch.aspect > this.aspect){
+      var scale = resizeWatch.width / this.width;
     } else {
-      var scale = ResizeWatch.height / this.height;
+      var scale = resizeWatch.height / this.height;
     }
 
     this.plane.scale.x = scale;
@@ -214,10 +222,10 @@ class Webgl{
 
     this.camera.updateProjectionMatrix();
 
-    if(ResizeWatch.aspect > this.aspect){
-      var scale = ResizeWatch.width / this.width;
+    if(resizeWatch.aspect > this.aspect){
+      var scale = resizeWatch.width / this.width;
     } else {
-      var scale = ResizeWatch.height / this.height;
+      var scale = resizeWatch.height / this.height;
     }
 
     this.plane.scale.x = scale;
