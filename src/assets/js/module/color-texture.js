@@ -71,7 +71,7 @@ export class ColorTex{
         uSize: { value: this.sim.size },
         uTick: { value: 0 },
         uScale2: { value: new THREE.Vector3(scale.x, scale.y, scale.z) },
-        uScale1: { value: 0.7 },
+        uScale1: { value: 20.0 }, // Adjusted scale for better visibility
         uColorArray: { value: this.colorPallete},
         isEdge: { value: true},
         uEdgeScale: { value: this.controls.props.edgeSize},
