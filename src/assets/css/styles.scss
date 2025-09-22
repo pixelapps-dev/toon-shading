@@ -1,8 +1,7 @@
 @charset "UTF-8";
 
-@import "vendor/initial";
-
-@import "vendor/easing";
+@use "vendor/initial";
+@use "vendor/easing";
 
 body{
   overflow: hidden;

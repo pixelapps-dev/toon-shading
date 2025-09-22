@@ -27,6 +27,13 @@ results
 npm-debug.log
 node_modules
 
+# Package locks
+package-lock.json
+
+# Build outputs
+dst/
+build/
+
 # Sass
 .sass-cache
 
@@ -47,6 +54,9 @@ Session.vim
 .htpasswd
 pull.php
 
-#dev
-#dst
-build
+# Vite
+dist/
+.vite/
+
+# Temporary files
+.tmp/

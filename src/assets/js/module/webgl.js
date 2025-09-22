@@ -1,80 +1,53 @@
-class Webgl{
+import * as THREE from 'three';
+import { resizeWatch } from './resize-watch.js';
+import { Controls } from './controls.js';
+import { ColorTex } from './color-texture.js';
+
+export class Webgl{
   constructor(){
     this.size = 32;
 
     this.vertShader = [
-      "assets/glsl/output.vert",
-      "assets/glsl/cube.vert"
+      "/assets/glsl/output.vert",
+      "/assets/glsl/cube.vert"
     ];
 
     this.fragShader = [
-      "assets/glsl/output.frag",
-      "assets/glsl/simulation_def.frag",
-      "assets/glsl/simulation_vel.frag",
-      "assets/glsl/simulation_pos.frag",
-      "assets/glsl/cube.frag",
+      "/assets/glsl/output.frag",
+      "/assets/glsl/simulation_def.frag",
+      "/assets/glsl/simulation_vel.frag",
+      "/assets/glsl/simulation_pos.frag",
+      "/assets/glsl/cube.frag",
     ];
 
-
-    this.shaderLength = this.vertShader.length + this.fragShader.length;
-    this.shaderCount = 0;
-
-    for(var i = 0; i < this.vertShader.length; i++){
-      this.importShader_vert(i);
-    }
-
-    for(var i = 0; i < this.fragShader.length; i++){
-      this.importShader_frag(i);
-    }
+    this.loadShaders();
   }
 
-  importShader_vert(i){
+  async loadShaders() {
+    try {
+      // Load vertex shaders
+      const vertPromises = this.vertShader.map(async (path, i) => {
+        const response = await fetch(path);
+        const text = await response.text();
+        this.vertShader[i] = text;
+      });
 
-    var myRequest = new XMLHttpRequest();
+      // Load fragment shaders
+      const fragPromises = this.fragShader.map(async (path, i) => {
+        const response = await fetch(path);
+        const text = await response.text();
+        this.fragShader[i] = text;
+      });
 
-    var _this = this;
-    myRequest.onreadystatechange = () =>{
-      if ( myRequest.readyState === 4 ) {
-         _this.vertShader[i] = myRequest.response;
-        _this.completeShaderLoad();
-      }
-    };
-
-
-    myRequest.open("GET", this.vertShader[i], true);
-    myRequest.send();
-  };
-
-
-  importShader_frag(i){
-
-    var myRequest = new XMLHttpRequest();
-    // ハンドラの登録
-    var _this = this;
-    myRequest.onreadystatechange = () => {
-      if ( myRequest.readyState === 4 ) {
-         _this.fragShader[i] = myRequest.response;
-
-
-        _this.completeShaderLoad();
-      }
-    };
-
-    myRequest.open("GET", this.fragShader[i], true);
-    myRequest.send();
-  };
-
-
-
-  completeShaderLoad(){
-    this.shaderCount++;
-
-    if(this.shaderCount === this.shaderLength) {
-      this.isShaderComplete = true;
+      // Wait for all shaders to load
+      await Promise.all([...vertPromises, ...fragPromises]);
+      
+      // Initialize after all shaders are loaded
       this.init();
+    } catch (error) {
+      console.error('Failed to load shaders:', error);
     }
-  };
-
+  }
 
   init(){
     this.width = 2048;
@@ -90,11 +63,13 @@ class Webgl{
 
     this.renderer.autoClear = false;
     // renderer.setPixelRatio( window.devicePixelRatio );
-    this.renderer.setSize( ResizeWatch.width, ResizeWatch.height );
+    this.renderer.setSize( resizeWatch.width, resizeWatch.height );
     this.renderer.setClearColor( 0xffffff, 0.0 );
     this.container.appendChild( this.renderer.domElement );
 
-    var ratio = (Useragnt.pc) ? 1.0 : 2.0;
+    // Modern browser detection
+    const isPC = window.innerWidth > 768; // Simple PC/mobile detection
+    var ratio = isPC ? 1.0 : 2.0;
 
     this.renderer.setPixelRatio(ratio);
 
@@ -120,13 +95,37 @@ class Webgl{
     this.time = new THREE.Clock();
     this.render();
 
-    ResizeWatch.register(this);
+    resizeWatch.register(this);
   };
+
+  createFallbackScene() {
+    // Create a simple rotating cube as fallback
+    const geometry = new THREE.BoxGeometry(100, 100, 100);
+    const material = new THREE.MeshBasicMaterial({ 
+      color: 0xff6b9d,
+      wireframe: true 
+    });
+    this.fallbackMesh = new THREE.Mesh(geometry, material);
+    this.scene.add(this.fallbackMesh);
+    
+    this.time = new THREE.Clock();
+    this.renderFallback();
+  }
+
+  renderFallback() {
+    if (this.fallbackMesh) {
+      this.fallbackMesh.rotation.x += 0.01;
+      this.fallbackMesh.rotation.y += 0.01;
+    }
+    
+    this.renderer.render(this.scene, this.camera);
+    requestAnimationFrame(() => this.renderFallback());
+  }
 
 
   setProps(){
-    var width = ResizeWatch.width;
-    var height = ResizeWatch.height;
+    var width = resizeWatch.width;
+    var height = resizeWatch.height;
     var aspect = width / height;
 
     this.props = {
@@ -146,16 +145,16 @@ class Webgl{
 
 
   createPlane(){
-    var g = new THREE.PlaneBufferGeometry(this.width, this.height);
+    var g = new THREE.PlaneGeometry(this.width, this.height);
 
     
 
     this.uniforms = {
-      uTex_1: {type: "t", value: this.colorTex.fbo.texture},
-      uTick: {type: "f", value: 0},
-      uSize: {type: "v2", value: new THREE.Vector2(this.width, this.height)},
-      // uEdgeColor: {type: "v3", value: new THREE.Color(this.edgeColor)},
-      uBgColor: {type: "v3", value: new THREE.Color(this.controls.props.bgColor)},
+      uTex_1: { value: this.colorTex.fbo.texture},
+      uTick: { value: 0},
+      uSize: { value: new THREE.Vector2(this.width, this.height)},
+      // uEdgeColor: { value: new THREE.Color(this.edgeColor)},
+      uBgColor: { value: new THREE.Color(this.controls.props.bgColor)},
     };
 
     var m = new THREE.ShaderMaterial({
@@ -175,10 +174,10 @@ class Webgl{
 
     console.log(this.plane);
 
-    if(ResizeWatch.aspect > this.aspect){
-      var scale = ResizeWatch.width / this.width;
+    if(resizeWatch.aspect > this.aspect){
+      var scale = resizeWatch.width / this.width;
     } else {
-      var scale = ResizeWatch.height / this.height;
+      var scale = resizeWatch.height / this.height;
     }
 
     this.plane.scale.x = scale;
@@ -214,10 +213,10 @@ class Webgl{
 
     this.camera.updateProjectionMatrix();
 
-    if(ResizeWatch.aspect > this.aspect){
-      var scale = ResizeWatch.width / this.width;
+    if(resizeWatch.aspect > this.aspect){
+      var scale = resizeWatch.width / this.width;
     } else {
-      var scale = ResizeWatch.height / this.height;
+      var scale = resizeWatch.height / this.height;
     }
 
     this.plane.scale.x = scale;

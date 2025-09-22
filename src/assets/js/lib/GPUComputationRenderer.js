@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 /**
  * @author yomboprime https://github.com/yomboprime
  *
@@ -97,7 +99,7 @@
  * @param {WebGLRenderer} renderer The renderer
   */
 
-function GPUComputationRenderer( sizeX, sizeY, renderer ) {
+export function GPUComputationRenderer( sizeX, sizeY, renderer ) {
 
 	this.variables = [];
 
@@ -114,7 +116,7 @@ function GPUComputationRenderer( sizeX, sizeY, renderer ) {
 
 	var passThruShader = createShaderMaterial( getPassThroughFragmentShader(), passThruUniforms );
 
-	var mesh = new THREE.Mesh( new THREE.PlaneBufferGeometry( 2, 2 ), passThruShader );
+	var mesh = new THREE.Mesh( new THREE.PlaneGeometry( 2, 2 ), passThruShader );
 	scene.add( mesh );
 
 
@@ -292,7 +294,9 @@ function GPUComputationRenderer( sizeX, sizeY, renderer ) {
 		minFilter = minFilter || THREE.NearestFilter;
 		magFilter = magFilter || THREE.NearestFilter;
 
-		var floatType = (Useragnt.ios) ? THREE.HalfFloatType : THREE.FloatType;
+		// Modern browsers support FloatType, use HalfFloatType for mobile devices
+		const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+		var floatType = isIOS ? THREE.HalfFloatType : THREE.FloatType;
 
 		var renderTarget = new THREE.WebGLRenderTarget( sizeXTexture, sizeYTexture, {
 			wrapS: wrapS,
@@ -313,7 +317,9 @@ function GPUComputationRenderer( sizeX, sizeY, renderer ) {
 		sizeXTexture = sizeXTexture || sizeX;
 		sizeYTexture = sizeYTexture || sizeY;
 
-		var floatType = (Useragnt.ios) ? THREE.HalfFloatType : THREE.FloatType;
+		// Modern browsers support FloatType, use HalfFloatType for mobile devices
+		const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+		var floatType = isIOS ? THREE.HalfFloatType : THREE.FloatType;
 
 		var a = new Float32Array( sizeXTexture * sizeYTexture * 4 );
 		var texture = new THREE.DataTexture( a, sizeX, sizeY, THREE.RGBAFormat, THREE.FloatType );

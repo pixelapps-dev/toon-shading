@@ -1,4 +1,8 @@
-class ColorTex{
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { Simulation } from './simulation.js';
+
+export class ColorTex{
   constructor(webgl){
     this.webgl = webgl;
     this.controls = this.webgl.controls;
@@ -14,10 +18,10 @@ class ColorTex{
     }
 
     this.objType = [
-      new THREE.TorusBufferGeometry(8, 4, 18, 32),
-      new THREE.TorusBufferGeometry(14, 3, 5, 3),
-      new THREE.BoxBufferGeometry(12, 12, 12),
-      new THREE.TorusBufferGeometry(16, 2, 5, 6),
+      new THREE.TorusGeometry(8, 4, 18, 32),
+      new THREE.TorusGeometry(14, 3, 5, 3),
+      new THREE.BoxGeometry(12, 12, 12),
+      new THREE.TorusGeometry(16, 2, 5, 6),
     ];
 
     this.objTypeName = [
@@ -50,7 +54,7 @@ class ColorTex{
     this.group = new THREE.Group();
     this.scene.add(this.group);
 
-    this.orbitControls = new THREE.OrbitControls( this.camera, this.webgl.renderer.domElement );
+    this.orbitControls = new OrbitControls( this.camera, this.webgl.renderer.domElement );
 
     this.sim = new Simulation(this.webgl, this.size);
 
@@ -62,23 +66,22 @@ class ColorTex{
 
     this.material = new THREE.ShaderMaterial( {
       uniforms: {
-        posMap: { type: "t", value: this.sim.gpuCompute.getCurrentRenderTarget(this.sim.pos).texture },
-        velMap: { type: "t", value: this.sim.gpuCompute.getCurrentRenderTarget(this.sim.vel).texture },
-        uSize: { type: "f", value: this.sim.size },
-        uTick: { type: 'f', value: 0 },
-        uScale2: { type: 'v3', value: new THREE.Vector3(scale.x, scale.y, scale.z) },
-        uScale1: { type: 'f', value: 0.7 },
-        uColorArray: {type: "v3v", value: this.colorPallete},
-        isEdge: {type: 'i', value: true},
-        uEdgeScale: {type: 'f', value: this.controls.props.edgeSize},
-        uEdgeColor: {type: 'vec3', value: new THREE.Color(this.controls.props.edgeColor)},
-        isShading: {type: 'i', value: this.controls.props.shading}
+        posMap: { value: this.sim.gpuCompute.getCurrentRenderTarget(this.sim.pos).texture },
+        velMap: { value: this.sim.gpuCompute.getCurrentRenderTarget(this.sim.vel).texture },
+        uSize: { value: this.sim.size },
+        uTick: { value: 0 },
+        uScale2: { value: new THREE.Vector3(scale.x, scale.y, scale.z) },
+        uScale1: { value: 20.0 }, // Adjusted scale for better visibility
+        uColorArray: { value: this.colorPallete},
+        isEdge: { value: true},
+        uEdgeScale: { value: this.controls.props.edgeSize},
+        uEdgeColor: { value: new THREE.Color(this.controls.props.edgeColor)},
+        isShading: { value: this.controls.props.shading}
       },
 
       vertexShader: this.webgl.vertShader[1],
       fragmentShader: this.webgl.fragShader[4],
       side: THREE.DoubleSide,
-      flatShading: true,
       transparent: true,
     });
 
@@ -157,7 +160,7 @@ class ColorTex{
     }
 
     const vertNormals = new THREE.Float32BufferAttribute( vertNormal , 3 );
-    originalG.addAttribute("vertNormal", vertNormals);
+    originalG.setAttribute("vertNormal", vertNormals);
     return originalG;
   }
 
@@ -232,17 +235,17 @@ class ColorTex{
     var geometry = new THREE.InstancedBufferGeometry();
     var vertices = originalG.attributes.position.clone();
 
-    geometry.addAttribute("position", vertices);
+    geometry.setAttribute("position", vertices);
 
     var normals = originalG.attributes.normal.clone();
-    geometry.addAttribute("normal", normals);
+    geometry.setAttribute("normal", normals);
 
     var vertNormals = originalG.attributes.vertNormal.clone();
-    geometry.addAttribute("vertNormal", vertNormals);
+    geometry.setAttribute("vertNormal", vertNormals);
 
       // uv
     var uvs = originalG.attributes.uv.clone();
-    geometry.addAttribute("uv", uvs);
+    geometry.setAttribute("uv", uvs);
 
       // index
     if(originalG.index){
@@ -262,8 +265,8 @@ class ColorTex{
     }
 
 
-    geometry.addAttribute("aNum", nums);
-    geometry.addAttribute("aNumRatio", numRatios);
+    geometry.setAttribute("aNum", nums);
+    geometry.setAttribute("aNumRatio", numRatios);
 
     
 
@@ -277,7 +280,9 @@ class ColorTex{
 
 
   render(time, delta){
-    this.webgl.renderer.clearTarget(this.fbo);
+    // Modern Three.js approach to clear render target
+    this.webgl.renderer.setRenderTarget(this.fbo);
+    this.webgl.renderer.clear();
 
     var sin = (Math.sin(time) * 0.5 + 0.5) * 0.5;
 
@@ -313,8 +318,10 @@ class ColorTex{
     }
 
     
-
     this.objType[this.objNum].visible = false;
+    
+    // Reset render target to screen to avoid feedback loop
+    this.webgl.renderer.setRenderTarget(null);
   };
 
 }
