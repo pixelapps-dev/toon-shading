@@ -3,9 +3,6 @@ import { resizeWatch } from './resize-watch.js';
 import { Controls } from './controls.js';
 import { ColorTex } from './color-texture.js';
 
-// Global for now - TODO: remove this and use proper user agent detection
-const Useragnt = { pc: true };
-
 export class Webgl{
   constructor(){
     this.size = 32;
@@ -70,7 +67,9 @@ export class Webgl{
     this.renderer.setClearColor( 0xffffff, 0.0 );
     this.container.appendChild( this.renderer.domElement );
 
-    var ratio = (Useragnt.pc) ? 1.0 : 2.0;
+    // Modern browser detection
+    const isPC = window.innerWidth > 768; // Simple PC/mobile detection
+    var ratio = isPC ? 1.0 : 2.0;
 
     this.renderer.setPixelRatio(ratio);
 
@@ -151,11 +150,11 @@ export class Webgl{
     
 
     this.uniforms = {
-      uTex_1: {type: "t", value: this.colorTex.fbo.texture},
-      uTick: {type: "f", value: 0},
-      uSize: {type: "v2", value: new THREE.Vector2(this.width, this.height)},
-      // uEdgeColor: {type: "v3", value: new THREE.Color(this.edgeColor)},
-      uBgColor: {type: "v3", value: new THREE.Color(this.controls.props.bgColor)},
+      uTex_1: { value: this.colorTex.fbo.texture},
+      uTick: { value: 0},
+      uSize: { value: new THREE.Vector2(this.width, this.height)},
+      // uEdgeColor: { value: new THREE.Color(this.edgeColor)},
+      uBgColor: { value: new THREE.Color(this.controls.props.bgColor)},
     };
 
     var m = new THREE.ShaderMaterial({

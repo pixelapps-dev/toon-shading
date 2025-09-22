@@ -318,8 +318,10 @@ export class ColorTex{
     }
 
     
-
     this.objType[this.objNum].visible = false;
+    
+    // Reset render target to screen to avoid feedback loop
+    this.webgl.renderer.setRenderTarget(null);
   };
 
 }
