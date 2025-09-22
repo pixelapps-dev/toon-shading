@@ -84,14 +84,7 @@ export class Webgl{
 
     this.controls = new Controls(this);
 
-    try {
-      this.colorTex = new ColorTex(this);
-    } catch (error) {
-      console.error('Failed to initialize ColorTex:', error);
-      // Create a fallback simple scene
-      this.createFallbackScene();
-      return;
-    }
+    this.colorTex = new ColorTex(this);
 
     this.createPlane();
 
