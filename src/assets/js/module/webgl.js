@@ -11,78 +11,46 @@ export class Webgl{
     this.size = 32;
 
     this.vertShader = [
-      "assets/glsl/output.vert",
-      "assets/glsl/cube.vert"
+      "/assets/glsl/output.vert",
+      "/assets/glsl/cube.vert"
     ];
 
     this.fragShader = [
-      "assets/glsl/output.frag",
-      "assets/glsl/simulation_def.frag",
-      "assets/glsl/simulation_vel.frag",
-      "assets/glsl/simulation_pos.frag",
-      "assets/glsl/cube.frag",
+      "/assets/glsl/output.frag",
+      "/assets/glsl/simulation_def.frag",
+      "/assets/glsl/simulation_vel.frag",
+      "/assets/glsl/simulation_pos.frag",
+      "/assets/glsl/cube.frag",
     ];
 
-
-    this.shaderLength = this.vertShader.length + this.fragShader.length;
-    this.shaderCount = 0;
-
-    for(var i = 0; i < this.vertShader.length; i++){
-      this.importShader_vert(i);
-    }
-
-    for(var i = 0; i < this.fragShader.length; i++){
-      this.importShader_frag(i);
-    }
+    this.loadShaders();
   }
 
-  importShader_vert(i){
+  async loadShaders() {
+    try {
+      // Load vertex shaders
+      const vertPromises = this.vertShader.map(async (path, i) => {
+        const response = await fetch(path);
+        const text = await response.text();
+        this.vertShader[i] = text;
+      });
 
-    var myRequest = new XMLHttpRequest();
+      // Load fragment shaders
+      const fragPromises = this.fragShader.map(async (path, i) => {
+        const response = await fetch(path);
+        const text = await response.text();
+        this.fragShader[i] = text;
+      });
 
-    var _this = this;
-    myRequest.onreadystatechange = () =>{
-      if ( myRequest.readyState === 4 ) {
-         _this.vertShader[i] = myRequest.response;
-        _this.completeShaderLoad();
-      }
-    };
-
-
-    myRequest.open("GET", this.vertShader[i], true);
-    myRequest.send();
-  };
-
-
-  importShader_frag(i){
-
-    var myRequest = new XMLHttpRequest();
-    // ハンドラの登録
-    var _this = this;
-    myRequest.onreadystatechange = () => {
-      if ( myRequest.readyState === 4 ) {
-         _this.fragShader[i] = myRequest.response;
-
-
-        _this.completeShaderLoad();
-      }
-    };
-
-    myRequest.open("GET", this.fragShader[i], true);
-    myRequest.send();
-  };
-
-
-
-  completeShaderLoad(){
-    this.shaderCount++;
-
-    if(this.shaderCount === this.shaderLength) {
-      this.isShaderComplete = true;
+      // Wait for all shaders to load
+      await Promise.all([...vertPromises, ...fragPromises]);
+      
+      // Initialize after all shaders are loaded
       this.init();
+    } catch (error) {
+      console.error('Failed to load shaders:', error);
     }
-  };
-
+  }
 
   init(){
     this.width = 2048;
@@ -116,7 +84,14 @@ export class Webgl{
 
     this.controls = new Controls(this);
 
-    this.colorTex = new ColorTex(this);
+    try {
+      this.colorTex = new ColorTex(this);
+    } catch (error) {
+      console.error('Failed to initialize ColorTex:', error);
+      // Create a fallback simple scene
+      this.createFallbackScene();
+      return;
+    }
 
     this.createPlane();
 
@@ -130,6 +105,30 @@ export class Webgl{
 
     resizeWatch.register(this);
   };
+
+  createFallbackScene() {
+    // Create a simple rotating cube as fallback
+    const geometry = new THREE.BoxGeometry(100, 100, 100);
+    const material = new THREE.MeshBasicMaterial({ 
+      color: 0xff6b9d,
+      wireframe: true 
+    });
+    this.fallbackMesh = new THREE.Mesh(geometry, material);
+    this.scene.add(this.fallbackMesh);
+    
+    this.time = new THREE.Clock();
+    this.renderFallback();
+  }
+
+  renderFallback() {
+    if (this.fallbackMesh) {
+      this.fallbackMesh.rotation.x += 0.01;
+      this.fallbackMesh.rotation.y += 0.01;
+    }
+    
+    this.renderer.render(this.scene, this.camera);
+    requestAnimationFrame(() => this.renderFallback());
+  }
 
 
   setProps(){

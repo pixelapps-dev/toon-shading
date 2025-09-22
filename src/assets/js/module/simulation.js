@@ -10,16 +10,21 @@ export class Simulation{
   }
 
   init(){
-    this.gpuCompute = new GPUComputationRenderer( this.size, this.size, this.renderer );
+    try {
+      this.gpuCompute = new GPUComputationRenderer( this.size, this.size, this.renderer );
 
-    this.dataPos = this.gpuCompute.createTexture();
-    this.dataVel = this.gpuCompute.createTexture();
-    this.dataDef = this.gpuCompute.createTexture();
+      this.dataPos = this.gpuCompute.createTexture();
+      this.dataVel = this.gpuCompute.createTexture();
+      this.dataDef = this.gpuCompute.createTexture();
 
+      if (!this.dataPos || !this.dataVel || !this.dataDef) {
+        console.error('Failed to create GPU textures');
+        return;
+      }
 
-    var posArray = this.dataPos.image.data;
-    var velArray = this.dataVel.image.data;
-    var defArray = this.dataDef.image.data;
+      var posArray = this.dataPos.image.data;
+      var velArray = this.dataVel.image.data;
+      var defArray = this.dataDef.image.data;
 
 
     for ( var i = 0, il = posArray.length; i < il; i += 4 ) {
@@ -60,6 +65,9 @@ export class Simulation{
     if ( error !== null ) {
         console.error( error );
     }
-  };
+    } catch (error) {
+      console.error('Simulation initialization failed:', error);
+    }
+  }
   
 }
